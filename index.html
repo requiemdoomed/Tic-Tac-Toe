@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0e18">
+<title>Tic Tac Toe — C Engine</title>
+<style>
+:root{color-scheme:dark;--bg:#090d17;--panel:rgba(20,27,45,.78);--line:rgba(160,180,220,.14);--muted:#94a2bd;--text:#f4f7ff;--cyan:#6de7f5;--violet:#b6a0ff;--green:#a5f3c2;--shadow:0 24px 80px #0007}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(ellipse at 15% 5%,#19345a 0,transparent 34%),radial-gradient(ellipse at 95% 35%,#35245d 0,transparent 30%),var(--bg);display:flex;align-items:center;justify-content:center;padding:28px 16px}
+button{font:inherit}
+.shell{width:min(100%,1000px);display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:22px}
+.panel{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(18px);border-radius:28px;box-shadow:var(--shadow)}
+.game{padding:clamp(20px,4vw,38px)}
+.eyebrow{display:flex;align-items:center;gap:9px;color:var(--cyan);font-size:.75rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.pulse{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 16px var(--green)}
+h1{font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.055em;line-height:1.02;margin:16px 0 10px}
+.subtitle{margin:0;color:var(--muted);line-height:1.6;font-size:.96rem}
+.statusbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:28px 0 16px}
+.turn{display:flex;align-items:center;gap:10px;font-weight:750}
+.turnmark{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#ffffff0a;border:1px solid var(--line);font-size:1.3rem;color:var(--cyan)}
+.status{font-size:.8rem;color:var(--muted);text-align:right}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;aspect-ratio:1}
+.cell{min-width:0;aspect-ratio:1;border-radius:20px;border:1px solid #ffffff13;background:linear-gradient(145deg,#ffffff0c,#ffffff04);color:var(--text);font-size:clamp(2.4rem,7vw,4.6rem);font-weight:800;display:grid;place-items:center;cursor:pointer;transition:transform .16s,border-color .16s,background .16s,box-shadow .16s;outline:none}
+.cell:hover:enabled{transform:translateY(-2px);border-color:#6de7f57a;background:#6de7f511}
+.cell:focus-visible,.action:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.cell:disabled{cursor:default}
+.cell.x{color:var(--cyan);text-shadow:0 0 25px #6de7f533}
+.cell.o{color:var(--violet);text-shadow:0 0 25px #b6a0ff33}
+.cell.marked{animation:pop .22s ease-out}
+.cell.winning{border-color:#a5f3c2aa;background:#a5f3c218;box-shadow:inset 0 0 24px #a5f3c10b,0 0 24px #a5f3c112}
+@keyframes pop{0%{transform:scale(.84)}100%{transform:scale(1)}}
+.controls{display:flex;gap:10px;margin-top:18px}
+.action{border:1px solid var(--line);border-radius:14px;padding:12px 16px;color:var(--text);background:#ffffff08;cursor:pointer;font-weight:700;transition:background .15s,transform .15s}
+.action:hover{background:#ffffff13;transform:translateY(-1px)}
+.action.primary{background:linear-gradient(135deg,#6de7f5,#91b7ff);border:0;color:#07111e;flex:1}
+.action:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.side{padding:26px;display:flex;flex-direction:column;gap:18px}
+.side h2{margin:0;font-size:1.1rem;letter-spacing:-.02em}
+.sidehead{display:flex;align-items:center;justify-content:space-between}
+.pill{font-size:.72rem;padding:6px 9px;border-radius:999px;background:#a5f3c218;color:var(--green);border:1px solid #a5f3c12b}
+.scoregrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.score{padding:15px 10px;border:1px solid var(--line);border-radius:17px;background:#ffffff05;text-align:center}
+.score .symbol{font-size:1.2rem;font-weight:850}
+.score .number{font-size:1.8rem;font-weight:800;margin:5px 0 1px;letter-spacing:-.04em}
+.score .label{font-size:.72rem;color:var(--muted)}
+.score.x .symbol{color:var(--cyan)}.score.o .symbol{color:var(--violet)}
+.divider{height:1px;background:var(--line)}
+.info{display:flex;gap:12px;align-items:flex-start;color:var(--muted);font-size:.87rem;line-height:1.55}
+.info strong{color:var(--text)}
+.infoicon{flex:0 0 34px;height:34px;border-radius:11px;background:#ffffff0a;display:grid;place-items:center;color:var(--cyan)}
+.history{display:flex;flex-wrap:wrap;gap:7px;min-height:31px}
+.movechip{border:1px solid var(--line);border-radius:9px;padding:6px 9px;color:var(--muted);font-size:.78rem;background:#ffffff05}
+.movechip b{color:var(--text)}
+.footer{margin-top:auto;color:#7786a3;font-size:.74rem;line-height:1.5;padding-top:6px}
+.toast{min-height:24px;color:var(--green);font-size:.85rem;font-weight:650;margin-top:10px}
+[hidden]{display:none!important}
+@media(max-width:760px){body{padding:16px 12px;align-items:flex-start}.shell{grid-template-columns:1fr;max-width:520px}.game{padding:22px}.side{padding:22px}.cell{border-radius:16px}.statusbar{margin-top:22px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <section class="panel game" aria-labelledby="title">
+    <div class="eyebrow"><span class="pulse" aria-hidden="true"></span> C-powered mini game</div>
+    <h1 id="title">Tic Tac Toe<span style="color:var(--cyan)">.</span></h1>
+    <p class="subtitle">A timeless duel. Three in a row wins. Every move is checked by the C game engine.</p>
+    <div class="statusbar">
+      <div class="turn"><span class="turnmark" id="turnMark" aria-hidden="true">X</span><span id="turnText">Player X's turn</span></div>
+      <div class="status" id="gameStatus">Game in progress</div>
+    </div>
+    <div class="board" id="board" role="group" aria-label="Tic Tac Toe board">
+      <button class="cell" data-cell="0" aria-label="Cell 1, empty"></button>
+      <button class="cell" data-cell="1" aria-label="Cell 2, empty"></button>
+      <button class="cell" data-cell="2" aria-label="Cell 3, empty"></button>
+      <button class="cell" data-cell="3" aria-label="Cell 4, empty"></button>
+      <button class="cell" data-cell="4" aria-label="Cell 5, empty"></button>
+      <button class="cell" data-cell="5" aria-label="Cell 6, empty"></button>
+      <button class="cell" data-cell="6" aria-label="Cell 7, empty"></button>
+      <button class="cell" data-cell="7" aria-label="Cell 8, empty"></button>
+      <button class="cell" data-cell="8" aria-label="Cell 9, empty"></button>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite">Ready when you are.</div>
+    <div class="controls">
+      <button class="action primary" id="newRound">↻ &nbsp; New round</button>
+      <button class="action" id="resetScores" title="Reset all scores">Reset scores</button>
+    </div>
+  </section>
+
+  <aside class="panel side" aria-label="Game details">
+    <div class="sidehead"><h2>Match scoreboard</h2><span class="pill" id="roundPill">ROUND 1</span></div>
+    <div class="scoregrid" aria-live="polite">
+      <div class="score x"><div class="symbol">×</div><div class="number" id="scoreX">0</div><div class="label">Player X</div></div>
+      <div class="score"><div class="symbol" style="color:var(--muted)">—</div><div class="number" id="scoreD">0</div><div class="label">Draws</div></div>
+      <div class="score o"><div class="symbol">○</div><div class="number" id="scoreO">0</div><div class="label">Player O</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="info"><div class="infoicon">⌘</div><div><strong>How to play</strong><br>Take turns selecting a square. The first player to connect three marks horizontally, vertically, or diagonally wins.</div></div>
+    <div class="info"><div class="infoicon">⌁</div><div><strong>Move history</strong><br>Review the moves made in this round below.</div></div>
+    <div class="history" id="history" aria-label="Move history"><span class="movechip">No moves yet</span></div>
+    <div class="divider"></div>
+    <div class="info"><div class="infoicon">C</div><div><strong>Powered by C</strong><br>The board state, move validation, turn order, and win/draw checks are implemented in <code>tictactoe.c</code>, compiled to WebAssembly.</div></div>
+    <p class="footer" id="engineNote">Connecting to the C engine…</p>
+  </aside>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const cells = [...document.querySelectorAll("[data-cell]")];
+  const turnMark = document.getElementById("turnMark");
+  const turnText = document.getElementById("turnText");
+  const gameStatus = document.getElementById("gameStatus");
+  const toast = document.getElementById("toast");
+  const historyEl = document.getElementById("history");
+  const engineNote = document.getElementById("engineNote");
+  const scores = { X: 0, O: 0, D: 0 };
+  let round = 1;
+  let moveHistory = [];
+  let lastStatus = 0;
+  let engine = null;
+
+  function setMessage(message) { toast.textContent = message; }
+
+  function render() {
+    if (!engine) return;
+    const values = cells.map((cell, i) => engine._game_get_cell(i));
+    const status = engine._game_get_status();
+    const player = engine._game_get_current_player() === 1 ? "X" : "O";
+    cells.forEach((cell, i) => {
+      const value = values[i];
+      const mark = value === 1 ? "X" : value === 2 ? "O" : "";
+      cell.textContent = mark;
+      cell.classList.toggle("x", mark === "X");
+      cell.classList.toggle("o", mark === "O");
+      cell.classList.toggle("marked", mark !== "" && moveHistory.some(m => m.position === i));
+      cell.disabled = Boolean(status) || value !== 0;
+      cell.setAttribute("aria-label", `Cell ${i + 1}, ${mark || "empty"}`);
+      cell.title = mark ? `Cell ${i + 1}: ${mark}` : `Play in cell ${i + 1}`;
+      cell.classList.remove("winning");
+    });
+
+    if (status === 0) {
+      turnMark.textContent = player;
+      turnMark.style.color = player === "X" ? "var(--cyan)" : "var(--violet)";
+      turnText.textContent = `Player ${player}'s turn`;
+      gameStatus.textContent = "Game in progress";
+    } else {
+      turnMark.textContent = status === 3 ? "＝" : status === 1 ? "X" : "O";
+      turnText.textContent = status === 3 ? "It's a draw!" : `Player ${status === 1 ? "X" : "O"} wins!`;
+      gameStatus.textContent = "Round complete";
+      const line = winningLine(values);
+      if (line) line.forEach(i => cells[i].classList.add("winning"));
+    }
+
+    document.getElementById("scoreX").textContent = scores.X;
+    document.getElementById("scoreO").textContent = scores.O;
+    document.getElementById("scoreD").textContent = scores.D;
+    document.getElementById("roundPill").textContent = `ROUND ${round}`;
+    historyEl.replaceChildren();
+    if (!moveHistory.length) {
+      const empty = document.createElement("span");
+      empty.className = "movechip";
+      empty.textContent = "No moves yet";
+      historyEl.append(empty);
+    } else {
+      moveHistory.forEach((move, idx) => {
+        const chip = document.createElement("span");
+        chip.className = "movechip";
+        const strong = document.createElement("b");
+        strong.textContent = move.player;
+        chip.append(strong, document.createTextNode(` · ${move.position + 1}`));
+        chip.title = `Move ${idx + 1}: Player ${move.player}, cell ${move.position + 1}`;
+        historyEl.append(chip);
+      });
+    }
+    if (status && status !== lastStatus) {
+      if (status === 3) { scores.D++; setMessage("A well-played draw. Ready for another?"); }
+      else {
+        const who = status === 1 ? "X" : "O";
+        scores[who]++;
+        setMessage(`Player ${who} takes the round! 🎉`);
+      }
+      document.getElementById("scoreX").textContent = scores.X;
+      document.getElementById("scoreO").textContent = scores.O;
+      document.getElementById("scoreD").textContent = scores.D;
+    }
+    lastStatus = status;
+  }
+
+  function winningLine(values) {
+    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    return lines.find(line => values[line[0]] !== 0 &&
+      values[line[0]] === values[line[1]] && values[line[1]] === values[line[2]]);
+  }
+
+  function play(position) {
+    if (!engine) { setMessage("The C engine is not loaded yet."); return; }
+    const player = engine._game_get_current_player() === 1 ? "X" : "O";
+    if (engine._game_move(position) !== 1) {
+      setMessage("That move isn't available. Choose an empty square.");
+      return;
+    }
+    moveHistory.push({ player, position });
+    setMessage(`Player ${player} played cell ${position + 1}.`);
+    render();
+  }
+
+  cells.forEach((cell, i) => cell.addEventListener("click", () => play(i)));
+  document.getElementById("newRound").addEventListener("click", () => {
+    if (!engine) return;
+    engine._game_reset();
+    moveHistory = [];
+    lastStatus = 0;
+    round++;
+    setMessage("Fresh board. Make your move!");
+    render();
+    cells[0].focus();
+  });
+  document.getElementById("resetScores").addEventListener("click", () => {
+    scores.X = scores.O = scores.D = 0;
+    round = 1;
+    if (engine) engine._game_reset();
+    moveHistory = [];
+    lastStatus = 0;
+    setMessage("Scores reset. A new match begins.");
+    render();
+  });
+
+  /* Emscripten supplies tictactoe.js and the compiled WebAssembly binary. */
+  const script = document.createElement("script");
+  script.src = "tictactoe.js";
+  script.onload = () => {
+    if (typeof createTicTacToeModule !== "function") {
+      engineNote.textContent = "Build module loaded, but its expected factory was not found. Rebuild using the provided command.";
+      setMessage("Unable to initialize the C engine.");
+      return;
+    }
+    createTicTacToeModule().then(Module => {
+      engine = Module;
+      engine._game_reset();
+      engineNote.textContent = "C engine loaded successfully via WebAssembly.";
+      setMessage("C engine ready. Player X starts.");
+      render();
+    }).catch(err => {
+      engineNote.textContent = "Could not load WebAssembly. See README.md for build and local-server instructions.";
+      setMessage("Engine failed to load. Check the build files and browser console.");
+      console.error(err);
+    });
+  };
+  script.onerror = () => {
+    engineNote.textContent = "C engine not built yet. Follow README.md to generate tictactoe.js and tictactoe.wasm.";
+    setMessage("Setup needed: compile tictactoe.c with Emscripten first.");
+  };
+  document.head.append(script);
+})();
+</script>
+</body>
+</html>
