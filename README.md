@@ -63,6 +63,3 @@ Open `http://localhost:8000/` in your browser.
 - Responsive layout and keyboard-accessible buttons
 - Reduced-motion preference support
 
-## Important
-
-The generated `tictactoe.js` and `tictactoe.wasm` files are build outputs, not source files, and are not included. Generate them with Emscripten using `build-web.sh`. The HTML page intentionally reports a setup message until the module is built.
