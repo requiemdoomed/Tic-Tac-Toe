@@ -1,4 +1,4 @@
-# Tic-Tac-Toe — C + HTML/WebAssembly
+# [Tic-Tac-Toe](https://requiemdoomed.github.io/Tic-Tac-Toe/)
 
 **Author: Swayam Shakya**
 
