@@ -1,7 +1,6 @@
 /*
  * Tic-Tac-Toe: C Game Engine
  * Author: Swayam Shakya
- *
  * Shared game engine for:
  *   1. Native Unix/OpenBSD terminal build
  *   2. Browser build compiled to WebAssembly with Emscripten
