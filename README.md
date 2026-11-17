@@ -4,13 +4,6 @@
 
 A terminal Tic-Tac-Toe game and a responsive browser UI powered by the same C game engine.
 
-## Files
-
-- `tictactoe.c` — C engine plus native terminal `main()`
-- `index.html` — responsive interface that calls the compiled C functions
-- `build-web.sh` — builds the C engine into WebAssembly with Emscripten
-- `Makefile` — native Unix build and clean targets
-
 ## Why WebAssembly?
 
 A web page cannot execute a `.c` source file directly. Emscripten compiles the C source to `tictactoe.js` plus `tictactoe.wasm`. The HTML interface calls exported C functions such as `game_move()` and `game_get_status()`. The browser's JavaScript handles presentation only; game state and move validation live in C.
@@ -63,3 +56,5 @@ Open `http://localhost:8000/` in your browser.
 - Responsive layout and keyboard-accessible buttons
 - Reduced-motion preference support
 
+## Author
+Swayam Shakya (2026) MIT License
