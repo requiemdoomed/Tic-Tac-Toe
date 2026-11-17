@@ -35,16 +35,6 @@ This generates `tictactoe.js` and `tictactoe.wasm` in the project directory.
 
 The build command exports the C API and names the JavaScript factory `createTicTacToeModule`, which `index.html` expects.
 
-## Serve the page locally
-
-Browsers often block WebAssembly loading from `file://`, so start a local HTTP server from this folder:
-
-```sh
-python3 -m http.server 8000
-```
-
-Open `http://localhost:8000/` in your browser.
-
 ## Controls and features
 
 - Two-player local game
