@@ -228,13 +228,43 @@ h1{font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.055em;line-height:1.02;marg
     render();
   });
 
+   /* JavaScript port of the C engine, used when tictactoe.js/.wasm are missing. */
+  function createFallbackEngine() {
+    const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let board, current, over, winner;
+    const reset = () => { board = Array(9).fill(0); current = 1; over = false; winner = 0; };
+    reset();
+    return {
+      _game_reset: reset,
+      _game_move(p) {
+        if (p < 0 || p > 8 || over || board[p] !== 0) return 0;
+        board[p] = current;
+        if (WINS.some(([a,b,c]) => board[a] && board[a] === board[b] && board[b] === board[c])) { over = true; winner = current; }
+        else if (board.every(v => v !== 0)) { over = true; winner = 3; }
+        else current = current === 1 ? 2 : 1;
+        return 1;
+      },
+      _game_get_cell: p => (p < 0 || p > 8 ? -1 : board[p]),
+      _game_get_current_player: () => current,
+      _game_get_status: () => (over ? winner : 0)
+    };
+  }
+
+  function useFallback(reason) {
+    if (engine) return;
+    engine = createFallbackEngine();
+    engine._game_reset();
+    engineNote.textContent = `${reason} Using the built-in JavaScript engine instead.`;
+    setMessage("Ready! Player X starts.");
+    render();
+  }
+
   /* Emscripten supplies tictactoe.js and the compiled WebAssembly binary. */
   const script = document.createElement("script");
   script.src = "tictactoe.js";
   script.onload = () => {
     if (typeof createTicTacToeModule !== "function") {
-      engineNote.textContent = "Build module loaded, but its expected factory was not found. Rebuild using the provided command.";
-      setMessage("Unable to initialize the C engine.");
+      useFallback("C module factory not found.");
       return;
     }
     createTicTacToeModule().then(Module => {
@@ -244,15 +274,11 @@ h1{font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.055em;line-height:1.02;marg
       setMessage("C engine ready. Player X starts.");
       render();
     }).catch(err => {
-      engineNote.textContent = "Could not load WebAssembly. See README.md for build and local-server instructions.";
-      setMessage("Engine failed to load. Check the build files and browser console.");
       console.error(err);
+      useFallback("Could not load WebAssembly.");
     });
   };
-  script.onerror = () => {
-    engineNote.textContent = "C engine not built yet. Follow README.md to generate tictactoe.js and tictactoe.wasm.";
-    setMessage("Setup needed: compile tictactoe.c with Emscripten first.");
-  };
+  script.onerror = () => useFallback("C engine (tictactoe.js) not built.");
   document.head.append(script);
 })();
 </script>
