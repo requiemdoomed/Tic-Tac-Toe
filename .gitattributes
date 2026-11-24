@@ -1,0 +1,5 @@
+*.[Mm][Kk]     linguist-detectable=false
+[Mm]akefile    linguist-detectable=false
+GNUmakefile    linguist-detectable=false
+*.sh           linguist-detectable=false
+*.bash         linguist-detectable=false
